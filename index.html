@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ringwood Live News - Live RSS & Weather Aggregator</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #e53e3e;
+            --text-color: #2d3748;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            border-bottom: 5px solid var(--secondary-color);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1rem;
+            color: #cbd5e0;
+        }
+
+        .ticker-wrap {
+            background: #edf2f7;
+            padding: 0.5rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        main h2, sidebar h2 {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .news-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .news-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--secondary-color);
+            transition: transform 0.2s;
+        }
+
+        .news-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .news-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            color: #1a202c;
+        }
+
+        .news-card h3 a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .news-card h3 a:hover {
+            color: var(--secondary-color);
+        }
+
+        .meta {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 0.8rem;
+        }
+
+        .news-card p {
+            font-size: 1rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .read-more {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            display: inline-block;
+            color: var(--secondary-color);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .read-more:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar-box {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .weather-widget {
+            text-align: center;
+        }
+
+        .weather-temp {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 0.5rem 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        .weather-desc {
+            text-transform: capitalize;
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        .loading, .error {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            padding: 2rem;
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .error {
+            color: var(--accent-color);
+        }
+
+        footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 3rem;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>RINGWOOD LIVE NEWS</h1>
+        <p>Your Automatically Updating Local Information Hub</p>
+    </header>
+
+    <div class="ticker-wrap">
+        Live Feed Status: <span id="feed-status" style="color: green;">Connecting to feeds...</span>
+    </div>
+
+    <div class="container">
+        <main>
+            <h2>Latest Local Headlines</h2>
+            <div id="news-container" class="news-grid">
+                <div class="loading">Fetching latest updates from Ringwood regional RSS feeds...</div>
+            </div>
+        </main>
+
+        <aside>
+            <div class="sidebar-box">
+                <h2>Ringwood Weather</h2>
+                <div id="weather-container" class="weather-widget">
+                    <div class="loading">Loading current weather...</div>
+                </div>
+            </div>
+
+            <div class="sidebar-box">
+                <h2>About This Hub</h2>
+                <p style="font-size: 0.95rem; color: #4a5568;">
+                    This platform automatically aggregates live public news and public feeds relevant to Ringwood, Hampshire, and the surrounding New Forest region using client-side API parsing.
+                </p>
+            </div>
+        </aside>
+    </div>
+
+    <footer>
+        <p>&copy; Ringwood Live News Aggregator. Powered by open RSS-to-JSON services and OpenWeather.</p>
+    </footer>
+
+    <script>
+        // 1. DYNAMIC WEATHER API INTEGRATION (Ringwood, UK)
+        async function fetchWeather() {
+            const weatherContainer = document.getElementById('weather-container');
+            // Using a reliable open geolocation or public weather fallback API data for Ringwood, UK
+            // Lat: 50.8465, Lon: -1.7944 (Ringwood, Hampshire coordinates)
+            const url = 'https://api.open-meteo.com/v1/forecast?latitude=50.8465&longitude=-1.7944&current_weather=true';
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Weather data unavailable');
+                const data = await response.json();
+                const temp = Math.round(data.current_weather.temperature);
+                const wind = data.current_weather.windspeed;
+                
+                // Weather codes map to friendly text description
+                const codeMap = {
+                    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
+                    45: 'Fog', 48: 'Depositing rime fog', 51: 'Light drizzle', 53: 'Moderate drizzle',
+                    61: 'Light rain', 63: 'Moderate rain', 65: 'Heavy rain', 71: 'Light snow',
+                    80: 'Light showers', 81: 'Moderate showers', 82: 'Violent showers'
+                };
+                const desc = codeMap[data.current_weather.weathercode] || 'Misty Conditions';
+
+                weatherContainer.innerHTML = `
+                    <div class="weather-temp">${temp}°C</div>
+                    <div class="weather-desc">${desc}</div>
+                    <div style="font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.85rem; color: #718096; margin-top: 0.5rem;">
+                        Wind Speed: ${wind} km/h • Ringwood, Hampshire
+                    </div>
+                `;
+            } catch (error) {
+                weatherContainer.innerHTML = `<div class="error">Failed to load real-time weather.</div>`;
+            }
+        }
+
+        // 2. LIVE RSS-TO-JSON INTEGRATION
+        // We use an open RSS-to-JSON converter api to safely fetch news from Hampshire/New Forest feeds without CORS restrictions.
+        async function fetchNews() {
+            const newsContainer = document.getElementById('news-container');
+            const statusLabel = document.getElementById('feed-status');
+            
+            // Public regional news feeds reporting on Hampshire / Ringwood area
+            const rssFeedUrl = 'https://www.salisburyjournal.co.uk/local-news/ringwood-news/rss/';
+            const apiConverterUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssFeedUrl)}`;
+
+            try {
+                const response = await fetch(apiConverterUrl);
+                if (!response.ok) throw new Error('News feed processing failed');
+                const data = await response.json();
+
+                if (data.status !== 'ok' || !data.items || data.items.length === 0) {
+                    throw new Error('No articles found');
+                }
+
+                statusLabel.textContent = 'Live Feed Active';
+                statusLabel.style.color = 'green';
+                newsContainer.innerHTML = ''; // Clear loading indicator
+
+                // Loop through items and append them cleanly into the feed
+                data.items.slice(0, 6).forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'news-card';
+                    
+                    // Format date elegantly
+                    const pubDate = new Date(item.pubDate).toLocaleDateString('en-GB', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+
+                    // Strip HTML descriptions safely if any exist
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = item.description || 'Click the title to see full editorial coverage regarding this Ringwood area development.';
+                    let cleanDesc = tempDiv.textContent || tempDiv.innerText || '';
+                    if (cleanDesc.length > 200) {
+                        cleanDesc = cleanDesc.substring(0, 200) + '...';
+                    }
+
+                    card.innerHTML = `
+                        <h3><a href="${item.link}" target="_blank" rel="noopener">${item.title}</a></h3>
+                        <div class="meta">Published: ${pubDate} • Via Salisbury Journal Regional Feed</div>
+                        <p>${cleanDesc}</p>
+                        <a href="${item.link}" target="_blank" rel="noopener" class="read-more">Read Official Full Story on News Outlet &rarr;</a>
+                    `;
+                    newsContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error(error);
+                statusLabel.textContent = 'Feed Offline (Using local backup)';
+                statusLabel.style.color = 'orange';
+                
+                // FALLBACK LOCAL LIVE FALLBACKS
+                newsContainer.innerHTML = `
+                    <div class="news-card">
+                        <h3><a href="https://www.advertiserandtimes.co.uk/new-forest/ringwood/" target="_blank">View Live Updates via Advertiser & Times</a></h3>
+                        <div class="meta">System Note • Live RSS Aggregator</div>
+                        <p>The automated public regional RSS news stream is currently encountering strict regional cross-origin security or script limits. Click below to pull down instant primary regional columns manually.</p>
+                        <a href="https://www.advertiserandtimes.co.uk/new-forest/ringwood/" target="_blank" class="read-more">Open Advertiser & Times Ringwood Section &rarr;</a>
+                    </div>
+                    <div class="news-card">
+                        <h3><a href="https://www.salisburyjournal.co.uk/local-news/ringwood-news/" target="_blank">View Live Updates via Salisbury Journal</a></h3>
+                        <div class="meta">System Note • Live RSS Aggregator</div>
+                        <p>Access the public municipal journal covering core road disruptions, planning boards, and retail spaces inside the town directly.</p>
+                        <a href="https://www.salisburyjournal.co.uk/local-news/ringwood-news/" target="_blank" class="read-more">Open Salisbury Journal Ringwood Section &rarr;</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize background APIs on script mount
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchWeather();
+            fetchNews();
+        });
+    </script>
+</body>
+</html>
